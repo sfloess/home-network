@@ -22,14 +22,24 @@ Each directory contains:
 
 ## Deployment
 
-Copy the host-specific files to the router's USB storage:
+Use the deploy script to push configs to routers via SSH (port 2222, dropbear):
+
+```sh
+./deploy.sh                    # Deploy to all 4 routers
+./deploy.sh server-ap          # Deploy to one router
+./deploy.sh server-ap util-ap  # Deploy to specific routers
+```
+
+The script copies `chroot-services.list` and `debian.sh` to USB storage, and sets `rc_usb` and `rc_startup` via nvram.
+
+### Manual deployment
 
 ```sh
 # Copy chroot services list
-scp server-ap/chroot-services.list root@server-ap:/tmp/mnt/sda1/dd-wrt/etc/
+ssh -p 2222 root@server-ap "cat > /tmp/mnt/sda1/dd-wrt/etc/chroot-services.list" < server-ap/chroot-services.list
 
 # Copy debian.sh
-scp server-ap/debian.sh root@server-ap:/tmp/mnt/sda1/dd-wrt/etc/init.d/
+ssh -p 2222 root@server-ap "cat > /tmp/mnt/sda1/dd-wrt/etc/init.d/debian.sh && chmod +x /tmp/mnt/sda1/dd-wrt/etc/init.d/debian.sh" < server-ap/debian.sh
 
 # Set nvram scripts
 ssh -p 2222 root@server-ap "nvram set rc_usb='$(cat server-ap/nvram-rc_usb.sh)' && nvram commit"
