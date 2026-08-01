@@ -1,0 +1,11 @@
+procps
+rsyslog
+cron
+rpcbind
+nfs-common
+nfs-kernel-server
+ntpdate-debian
+ntpsec
+msmtpd
+rsync
+ssh

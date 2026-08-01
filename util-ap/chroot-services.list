@@ -1,0 +1,7 @@
+procps
+rsyslog
+cron
+openntpd
+msmtpd
+ssh
+screen-cleanup
