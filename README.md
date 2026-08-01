@@ -2,6 +2,12 @@
 
 Host-specific configurations for my DD-WRT routers. Uses [FlossWare/ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap) as the framework.
 
+## Prerequisites
+
+- [FlossWare/ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap) framework deployed on your routers
+- An ed25519 SSH key for dropbear access (DD-WRT v2025.89+ only supports ed25519)
+- SSH config with ProxyJump if managing routers through a bastion host
+
 ## Routers
 
 | Host | IP | Role | Debian Chroot | Notes |
@@ -15,15 +21,15 @@ Host-specific configurations for my DD-WRT routers. Uses [FlossWare/ddwrt-bootst
 
 Each directory contains:
 
-- `dd-wrt.conf` — Storage path and log file config (sourced by framework scripts)
-- `chroot-services.list` — Debian services to start at boot
-- `nvram-rc_startup.sh` — Static IP and boot-time config
-- `nvram-rc_usb.sh` — USB mount and bootstrap trigger
-- `debian-mounts.sh` — (optional) Extra bind mounts for the Debian chroot
+- `dd-wrt.conf` -- Storage path and log file config (sourced by framework scripts)
+- `chroot-services.list` -- Debian services to start at boot (one service name per line)
+- `nvram-rc_startup.sh` -- Static IP configuration and boot-time settings that run before USB detection
+- `nvram-rc_usb.sh` -- USB mount handler and bootstrap trigger that runs when USB storage is detected
+- `debian-mounts.sh` -- (optional) Extra bind mounts for the Debian chroot, defining `start_extra_mounts()` and `stop_extra_mounts()` functions
 
 ## Deployment
 
-Use the deploy script to push configs to routers via SSH (port 2222, dropbear):
+Use the deploy script to push configs to routers via SSH (port 2222, dropbear). Requires ed25519 SSH key authentication and network connectivity to target routers.
 
 ```sh
 ./deploy.sh                    # Deploy to all 4 routers
@@ -52,7 +58,7 @@ ssh -p 2222 root@server-ap "nvram set rc_startup='$(cat server-ap/nvram-rc_start
 
 ## Key differences
 
-- **admin-ap**: Debian on `sda2` (not `sda1`), uses `syslog-ng` + `postfix`, `startDebian` commented out in `dd-wrt.sh`
-- **server-ap**: Mounts `sdb1` into chroot as `/exports/media-01` for NFS (via `debian-mounts.sh`)
-- **util-ap**: Uses `openntpd` instead of `ntpsec` (kernel 4.4 lacks `SO_TIMESTAMPNS`)
-- **desktop-ap**: Standard setup, no special mounts
+- **admin-ap**: Debian chroot on `sda2` (not `sda1`), uses `syslog-ng` + `postfix`, `startDebian` commented out in `dd-wrt.sh` (Entware-only bootstrap)
+- **server-ap**: Mounts second USB disk (`sdb1`) into chroot as `/exports/media-01` for NFS file sharing (configured via `debian-mounts.sh`)
+- **util-ap**: Uses `openntpd` instead of `ntpsec` because the kernel (4.4) lacks `SO_TIMESTAMPNS` support required by ntpsec
+- **desktop-ap**: Standard setup, no special mounts or custom services
