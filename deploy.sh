@@ -25,19 +25,24 @@ deploy_host() {
 
     echo "=== Deploying to ${host} ==="
 
-    # Determine storage dir (admin-ap uses sda2 for debian configs)
     storage="/tmp/mnt/sda1"
 
-    # Copy chroot-services.list via DD-WRT side
+    # Copy dd-wrt.conf
+    if [ -f "${dir}/dd-wrt.conf" ]; then
+        echo "  dd-wrt.conf..."
+        $SSH_DDWRT root@${host} "cat > ${storage}/dd-wrt/etc/dd-wrt.conf" < "${dir}/dd-wrt.conf"
+    fi
+
+    # Copy chroot-services.list
     if [ -f "${dir}/chroot-services.list" ]; then
         echo "  chroot-services.list..."
         $SSH_DDWRT root@${host} "cat > ${storage}/dd-wrt/etc/chroot-services.list" < "${dir}/chroot-services.list"
     fi
 
-    # Copy debian.sh via DD-WRT side
-    if [ -f "${dir}/debian.sh" ]; then
-        echo "  debian.sh..."
-        $SSH_DDWRT root@${host} "cat > ${storage}/dd-wrt/etc/init.d/debian.sh && chmod +x ${storage}/dd-wrt/etc/init.d/debian.sh" < "${dir}/debian.sh"
+    # Copy debian-mounts.sh (host-specific extra mounts)
+    if [ -f "${dir}/debian-mounts.sh" ]; then
+        echo "  debian-mounts.sh..."
+        $SSH_DDWRT root@${host} "cat > ${storage}/dd-wrt/etc/debian-mounts.sh" < "${dir}/debian-mounts.sh"
     fi
 
     # Set nvram rc_usb
