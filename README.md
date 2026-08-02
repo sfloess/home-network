@@ -12,7 +12,7 @@ Host-specific configurations for my DD-WRT routers. Uses [FlossWare/ddwrt-bootst
 
 | Host | IP | Role | Debian Chroot | Notes |
 |------|-----|------|---------------|-------|
-| admin-ap | 192.168.1.2 | DNS/DHCP/NTP server | sda2 (Entware on sda1) | Entware-only bootstrap, postfix, syslog-ng |
+| admin-ap | 192.168.1.2 | DNS/DHCP/NTP server | N/A (MIPS, Entware on sda1) | Entware-only (no Debian chroot on MIPS), postfix, syslog-ng |
 | util-ap | 192.168.1.3 | Utility | sda1 | openntpd (kernel 4.4, ntpsec incompatible) |
 | server-ap | 192.168.1.4 | NFS server | sda1 | NFS exports via sdb1, rsync |
 | desktop-ap | 192.168.1.5 | General purpose | sda1 | rsync |
@@ -26,6 +26,7 @@ Each directory contains:
 - `nvram-rc_startup.sh` -- Static IP configuration and boot-time settings that run before USB detection
 - `nvram-rc_usb.sh` -- USB mount handler and bootstrap trigger that runs when USB storage is detected
 - `debian-mounts.sh` -- (optional) Extra bind mounts for the Debian chroot, defining `start_extra_mounts()` and `stop_extra_mounts()` functions
+- `dnsmasq_options.conf` -- (admin-ap only) Full dnsmasq configuration for DNS, DHCP, and static leases
 
 ## Deployment
 
@@ -38,6 +39,10 @@ Use the deploy script to push configs to routers via SSH (port 2222, dropbear). 
 ```
 
 The script copies `dd-wrt.conf`, `chroot-services.list`, and `debian-mounts.sh` to USB storage, and sets `rc_usb` and `rc_startup` via nvram.
+
+### Automated sync
+
+A cron job on aio-01 pulls `dnsmasq_options` from admin-ap every 6 hours and commits changes to this repo automatically.
 
 ### Manual deployment
 
@@ -58,7 +63,7 @@ ssh -p 2222 root@server-ap "nvram set rc_startup='$(cat server-ap/nvram-rc_start
 
 ## Key differences
 
-- **admin-ap**: Debian chroot on `sda2` (not `sda1`), uses `syslog-ng` + `postfix`, `startDebian` commented out in `dd-wrt.sh` (Entware-only bootstrap)
+- **admin-ap**: MIPS 74Kc (no Debian chroot support), Entware-only on `sda1`, uses `syslog-ng` + `postfix`
 - **server-ap**: Mounts second USB disk (`sdb1`) into chroot as `/exports/media-01` for NFS file sharing (configured via `debian-mounts.sh`)
 - **util-ap**: Uses `openntpd` instead of `ntpsec` because the kernel (4.4) lacks `SO_TIMESTAMPNS` support required by ntpsec
 - **desktop-ap**: Standard setup, no special mounts or custom services
