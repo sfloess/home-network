@@ -45,6 +45,13 @@ deploy_host() {
         $SSH_DDWRT root@${host} "cat > ${storage}/dd-wrt/etc/debian-mounts.sh" < "${dir}/debian-mounts.sh"
     fi
 
+    # Copy sync-dns-zone.sh into the chroot (secondary DNS host)
+    if [ -f "${dir}/sync-dns-zone.sh" ]; then
+        echo "  sync-dns-zone.sh (chroot /root/bin/)..."
+        $SSH_CHROOT root@${host} "mkdir -p /root/bin"
+        cat "${dir}/sync-dns-zone.sh" | $SSH_CHROOT root@${host} "cat > /root/bin/sync-dns-zone.sh && chmod +x /root/bin/sync-dns-zone.sh"
+    fi
+
     # Set nvram rc_usb
     if [ -f "${dir}/nvram-rc_usb.sh" ]; then
         echo "  nvram rc_usb..."

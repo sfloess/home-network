@@ -1,0 +1,113 @@
+# Edit this file to introduce tasks to be run by cron.
+#
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+#
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+#
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+# -------------------------------------------------------
+#MAILTO=sfloess@nc.rr.com
+MAILTO=scot.floess@gmail.com
+MAILFROM=sfloess@nc.rr.com
+# -------------------------------------------------------
+00 15  *  * 01    ssh admin-ap       "      opkg update   ; opkg upgrade"
+30 15  *  * 01    ssh util-ap        "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+00 16  *  * 01    ssh server-ap      "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+30 16  *  * 01    ssh desktop-ap     "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+00 17  *  * 01    ssh nas-01           "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+30 17  *  * 01    ssh pi-01          "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+00 18  *  * 01    ssh pi-02          "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+30 18  *  * 01    ssh aio-01         "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+# -------------------------------------------------------
+00 19  *  * 01-06 ssh admin-ap    "rsync -a          /opt/etc /opt/root /opt/home rsync://aio-01/exports/backups/host/admin-ap/opt/"
+00 19  *  * 07    ssh admin-ap    "rsync -a --delete /opt/etc /opt/root /opt/home rsync://aio-01/exports/backups/host/admin-ap/opt/"
+05 19  *  * 01-06 ssh util-ap     "time (rsync -a          /etc /opt /root /home rsync://aio-01/exports/backups/host/util-ap/)"
+05 19  *  * 07    ssh util-ap     "time (rsync -a --delete /etc /opt /root /home rsync://aio-01/exports/backups/host/util-ap/)"
+10 19  *  * 01-06 ssh server-ap   "time (rsync -a          /etc /opt /root /home rsync://aio-01/exports/backups/host/server-ap/)"
+10 19  *  * 07    ssh server-ap   "time (rsync -a --delete /etc /opt /root /home rsync://aio-01/exports/backups/host/server-ap/)"
+15 19  *  * 01-06 ssh desktop-ap  "time (rsync -a          /etc /opt /root /home rsync://aio-01/exports/backups/host/desktop-ap/)"
+15 19  *  * 07    ssh desktop-ap  "time (rsync -a --delete /etc /opt /root /home rsync://aio-01/exports/backups/host/desktop-ap/)"
+20 19  *  * 01-06 ssh pi-01       "time (rsync -a          /etc /opt /root /home rsync://aio-01/exports/backups/host/pi-01/)"
+20 19  *  * 07    ssh pi-01       "time (rsync -a --delete /etc /opt /root /home rsync://aio-01/exports/backups/host/pi-01/)"
+25 19  *  * 01-06 ssh pi-02       "time (rsync -a          /etc /opt /root /home rsync://aio-01/exports/backups/host/pi-02/)"
+25 19  *  * 07    ssh pi-02       "time (rsync -a --delete /etc /opt /root /home rsync://aio-01/exports/backups/host/pi-02/)"
+30 19  *  * 01-06 ssh aio-01      "time (rsync -a          /etc /opt /root /home rsync://aio-01/exports/backups/host/aio-01/)"
+30 19  *  * 07    ssh aio-01      "time (rsync -a --delete /etc /opt /root /home rsync://aio-01/exports/backups/host/aio-01/)"
+# -------------------------------------------------------
+#00 20  *  * 01-06 ssh laptop "time (rsync -a          /etc /opt /root  rsync://aio-01/exports/backups/host/laptop/)"
+#00 20  *  * 07    ssh laptop "time (rsync -a --delete /etc /opt /root  rsync://aio-01/exports/backups/host/laptop/)"
+#00 21  *  * 01-06 ssh laptop "time (rsync -a          --exclude .m2/repository --exclude Downloads --exclude .var --exclude .cache /home rsync://aio-01/exports/backups/host/laptop/)"
+#00 21  *  * 07    ssh laptop "time (rsync -a --delete --exclude .m2/repository --exclude Downloads --exclude .var --exclude .cache /home rsync://aio-01/exports/backups/host/laptop/)"
+# -------------------------------------------------------
+# -------------------------------------------------------
+00 22  *  * 01-06 ssh aio-01 "time (mountpoint -q /exports/usb/nvme && rsync -a           /exports/backups/ /exports/usb/nvme/backups/)"
+00 22  *  * 07    ssh aio-01 "time (mountpoint -q /exports/usb/nvme && rsync -a --delete  /exports/backups/ /exports/usb/nvme/backups/)"
+# -------------------------------------------------------
+00 23  *  * 01-06 ssh aio-01 "time (mountpoint -q /exports/usb/hdd && rsync -a           /exports/backups/ /exports/usb/hdd/backups/)"
+00 23  *  * 07    ssh aio-01 "time (mountpoint -q /exports/usb/hdd && rsync -a --delete  /exports/backups/ /exports/usb/hdd/backups/)"
+# -------------------------------------------------------
+05 00  *  *  07   ssh nas-01      "time (fstrim -v /)"
+10 00  *  *  07   ssh pi-01     "time (fstrim -v /)"
+15 00  *  *  07   ssh pi-02     "time (fstrim -v /)"
+20 00  *  *  07   ssh aio-01    "time (fstrim -v /)"
+#25 00  *  *  07   ssh laptop-01 "time (fstrim -v /)"
+# -------------------------------------------------------
+00 01  *  *  *    ssh aio-01 "time fail2ban-client status sshd | grep 'Currently banned' | cut -d '-' -f 2 | xargs"
+# -------------------------------------------------------
+#00 05  *  *  *    ssh pi-01 "time systemctl restart AgentDVR"
+#00 06  *  *  *    ssh pi-02 "time systemctl restart jellyfin"
+# -------------------------------------------------------
+# Admin API Tasks - util-ap calls aio-01:8001
+#0 3 * * 1 curl -s -X POST http://aio-01:8001/admin/maintain-models | logger -t admin-api
+# Chunking - DAILY at 2 AM
+#0 2 * * * curl -s -X POST http://aio-01:8001/admin/run-chunking | logger -t admin-api
+# Database vacuum - Weekly Sunday 4 AM
+#0 4 * * 0 curl -s -X POST http://aio-01:8001/admin/vacuum-db | logger -t admin-api
+# Health check - HOURLY at :15
+#15 * * * * curl -s http://aio-01:8001/admin/health | logger -t admin-api
+# -------------------------------------------------------
+# PostgreSQL learning database backup (as claude user, peer auth)
+# PostgreSQL learning database backup (custom format, faster)
+#0 2 * * * ssh root@aio-01 "sudo -u postgres pg_dump -p 5433 -Fc learning -f /exports/backups/databases/postgres-learning-$(date +\%Y\%m\%d).dump && find /exports/backups/databases -name 'postgres-learning-*.dump' -mtime +30 -delete" >/dev/null 2>&1
+# Skip Neo4j backup - database not in use
+# 15 2 * * * echo "Neo4j backup skipped - database not active"
+# -------------------------------------------------------
+# -------------------------------------------------------
+# Knowledge Graph Sync - PostgreSQL → Neo4j (daily 3 AM)
+#0 3 * * * ssh root@aio-01 "cd /mnt/aio-01/claude-orchestrator && python3 tools/knowledge_sync.py" >> /var/log/knowledge-sync.log 2>&1
+# -------------------------------------------------------
+# ArangoDB backup (Docker volume from laptop-01)
+# Daily at 2:05 AM, keep 30 days
+#5 2 * * * ssh root@laptop-01 "docker exec arangodb arangodump --server.database orchestrator --output-directory /tmp/arangodb-backup-\$(date +\%Y\%m\%d) --overwrite true && tar czf /tmp/arangodb-backup-\$(date +\%Y\%m\%d).tar.gz -C /tmp arangodb-backup-\$(date +\%Y\%m\%d) && rsync -a /tmp/arangodb-backup-\$(date +\%Y\%m\%d).tar.gz rsync://aio-01/exports/backups/databases/ && rm -rf /tmp/arangodb-backup-* && find /exports/backups/databases -name 'arangodb-backup-*.tar.gz' -mtime +30 -delete" >/dev/null 2>&1
+# -------------------------------------------------------
+# -------------------------------------------------------
+# OrientDB backup (Docker container on aio-01)
+# Daily at 2:10 AM, keep 30 days
+#10 2 * * * ssh root@aio-01 "curl -s -u root:orientdb http://localhost:2480/export/orchestrator | gzip > /tmp/orientdb-backup-\$(date +\%Y\%m\%d).json.gz && rsync -a /tmp/orientdb-backup-\$(date +\%Y\%m\%d).json.gz rsync://aio-01/exports/backups/databases/ && rm -f /tmp/orientdb-backup-*.json.gz && find /exports/backups/databases -name 'orientdb-backup-*.json.gz' -mtime +30 -delete" >/dev/null 2>&1
+# -------------------------------------------------------
+# Prediction system monitoring (every hour)
+#0 * * * * ssh laptop-01 "/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools/check-prediction-alerts.sh" >> /var/log/prediction-alerts.log 2>&1
+# Daily prediction health report (8 AM)
+#0 8 * * * ssh laptop-01 "/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools/check-prediction-health.sh" | mail -s "Prediction System Daily Report" root
+# -------------------------------------------------------
+# Red Hat Compliance Monitoring
+# Check every 6 hours for violations (Red Hat tasks using non-Anthropic models)
+#0 */6 * * * ssh laptop-01 "/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/bin/alert-redhat-violations.sh" >> /var/log/redhat-compliance.log 2>&1
+# -------------------------------------------------------
+30 7 * * 0 /root/bin/sync-dns-zone.sh

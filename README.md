@@ -1,69 +1,108 @@
-# ddwrt-config
+# home-network
 
-Host-specific configurations for my DD-WRT routers. Uses [FlossWare/ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap) as the framework.
+Reference configurations for my home network: DD-WRT routers running Debian
+chroots off USB SSDs, a two-server DNS design with automatic zone sync, and a
+cron-driven fleet maintenance loop — all on hardware ranging from a 2014 MIPS
+box to modern ARM routers.
 
-## Prerequisites
+The reusable framework these configs deploy through is
+[FlossWare/ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap).
 
-- [FlossWare/ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap) framework deployed on your routers
-- An ed25519 SSH key for dropbear access (DD-WRT v2025.89+ only supports ed25519)
-- SSH config with ProxyJump if managing routers through a bastion host
+## Topology
 
-## Routers
+| Host | IP | Hardware | Role | Debian chroot |
+|------|-----|----------|------|---------------|
+| gateway-ap | 192.168.1.1 | Netgear RAX-75 (stock firmware) | Internet gateway, main 5 GHz AP (`FlossWare-5.0-ghz`) | N/A |
+| admin-ap | 192.168.1.2 | Netgear WNDR3700 v4 (MIPS) | Primary DNS/DHCP (dnsmasq), mail relay (postfix), NTP | N/A — Entware only (MIPS) |
+| util-ap | 192.168.1.3 | Linksys EA6300 v1 (ARMv7) | Secondary DNS, fleet cron hub, 5 GHz wet bridge to gateway-ap | Yes |
+| server-ap | 192.168.1.4 | Netgear R9000 (ARMv7) | NFS media server, MariaDB, PostgreSQL | Yes |
+| desktop-ap | 192.168.1.5 | Netgear R9000 (ARMv7) | Desktop-area wireless relay to gateway-ap | Yes |
 
-| Host | IP | Role | Debian Chroot | Notes |
-|------|-----|------|---------------|-------|
-| admin-ap | 192.168.1.2 | DNS/DHCP/NTP server | N/A (MIPS, Entware on sda1) | Entware-only (no Debian chroot on MIPS), postfix, syslog-ng |
-| util-ap | 192.168.1.3 | Utility | sda1 | openntpd (kernel 4.4, ntpsec incompatible) |
-| server-ap | 192.168.1.4 | NFS server | sda1 | NFS exports via sdb1, rsync |
-| desktop-ap | 192.168.1.5 | General purpose | sda1 | rsync |
+Fleet hosts (aio-01 backup/rsync hub, nas-01, pi-01/02) are maintained by the
+fleet cron that runs on util-ap — see `fleet/fleet-crontab`.
 
-## Per-host files
+## The patterns worth stealing
 
-Each directory contains:
+### 1. Boot chain that survives firmware flashes
 
-- `dd-wrt.conf` -- Storage path and log file config (sourced by framework scripts)
-- `chroot-services.list` -- Debian services to start at boot (one service name per line)
-- `nvram-rc_startup.sh` -- Static IP configuration and boot-time settings that run before USB detection
-- `nvram-rc_usb.sh` -- USB mount handler and bootstrap trigger that runs when USB storage is detected
-- `debian-mounts.sh` -- (optional) Extra bind mounts for the Debian chroot, defining `start_extra_mounts()` and `stop_extra_mounts()` functions
-- `dnsmasq_options.conf` -- (admin-ap only) Full dnsmasq configuration for DNS, DHCP, and static leases
+DD-WRT's jffs is disabled. Instead, a tiny script in nvram (`rc_usb`, runs when
+USB automounts at boot) mounts the USB SSD by partition label and hands off to
+`dd-wrt/etc/init.d/dd-wrt.sh`:
 
-## Deployment
-
-Use the deploy script to push configs to routers via SSH (port 2222, dropbear). Requires ed25519 SSH key authentication and network connectivity to target routers.
-
-```sh
-./deploy.sh                    # Deploy to all 4 routers
-./deploy.sh server-ap          # Deploy to one router
-./deploy.sh server-ap util-ap  # Deploy to specific routers
+```
+nvram rc_usb  →  mount USB SSD  →  /tmp/mnt/sda1/dd-wrt/etc/init.d/dd-wrt.sh start
 ```
 
-The script copies `dd-wrt.conf`, `chroot-services.list`, and `debian-mounts.sh` to USB storage, and sets `rc_usb` and `rc_startup` via nvram.
+Because the chain lives in nvram + on the USB disk, **in-place firmware
+flashes never break it** — every router comes back up fully configured on its
+own, including the chroots. See `<host>/nvram-rc_usb.sh` for the per-router
+variants (label-based on the R9000s, blkid-based on util-ap).
 
-### Automated sync
+### 2. Debian chroot services from a list
 
-A cron job on aio-01 pulls `dnsmasq_options` from admin-ap every 6 hours and commits changes to this repo automatically.
+Each chroot router has a `chroot-services.list` — one Debian init script name
+per line. `dd-wrt.sh` binds `dev/pts/proc/sys` into the chroot and starts each
+service in order. To add a service to a router: add a line, reboot (or run the
+init script by hand).
 
-### Manual deployment
+### 3. Two-server DNS with automatic zone sync
 
-```sh
-# Copy config
-ssh -p 2222 root@server-ap "cat > /tmp/mnt/sda1/dd-wrt/etc/dd-wrt.conf" < server-ap/dd-wrt.conf
+Primary DNS is admin-ap's dnsmasq (it owns DHCP, so it's the zone authority).
+Secondary DNS runs as dnsmasq inside util-ap's Debian chroot — DNS-only, no
+DHCP. `util-ap/sync-dns-zone.sh` regenerates the secondary's entire config
+from the primary's live generated config over SSH and restarts dnsmasq only
+when the zone actually changed. It runs weekly via cron; run it manually after
+editing the primary zone. DHCP advertises both servers (`dhcp-option=6`).
 
-# Copy chroot services list
-ssh -p 2222 root@server-ap "cat > /tmp/mnt/sda1/dd-wrt/etc/chroot-services.list" < server-ap/chroot-services.list
+Why it matters: dnsmasq has no HA protocol, so the secondary is pure DNS. When
+the primary dies, existing leases keep working, static IPs are unaffected, and
+name resolution fails over — only *new* DHCP leases wait for the primary.
 
-# Copy extra mounts (if present)
-ssh -p 2222 root@server-ap "cat > /tmp/mnt/sda1/dd-wrt/etc/debian-mounts.sh" < server-ap/debian-mounts.sh
+### 4. Fleet maintenance cron
 
-# Set nvram scripts
-ssh -p 2222 root@server-ap "nvram set rc_usb='$(cat server-ap/nvram-rc_usb.sh)' && nvram commit"
-ssh -p 2222 root@server-ap "nvram set rc_startup='$(cat server-ap/nvram-rc_startup.sh)' && nvram commit"
+One crontab on util-ap (`fleet/fleet-crontab`) drives the whole fleet:
+Monday-rolling `apt upgrade` per host, nightly `rsync` backups of `/etc
+/opt /root /home` to a central rsync server, results mailed via
+msmtp → postfix relay.
+
+### 5. Entware where a chroot isn't possible
+
+admin-ap's MIPS kernel can't run the Debian chroot, so it uses Entware
+(opkg packages on the USB SSD) for postfix, syslog-ng, cron, ntpd. Same
+`rc_usb` boot chain, `startDebian` commented out of its `dd-wrt.sh`.
+
+## Repo layout
+
+```
+<host>/chroot-services.list   Debian init scripts to start in the chroot
+<host>/nvram-rc_usb.sh        Boot hook: mount USB, start dd-wrt.sh
+<host>/nvram-rc_startup.sh    Extra rc_startup content (host-specific)
+<host>/dd-wrt.conf            dd-wrt.sh variables
+admin-ap/dnsmasq_options.conf The DNS zone (source of truth)
+util-ap/sync-dns-zone.sh      Secondary DNS zone sync
+fleet/fleet-crontab           Fleet upgrades + backups schedule
+gateway-ap/                   Stock-firmware notes (nothing deployable)
+docs/known-issues.md          Field notes: real DD-WRT failure modes
+deploy.sh                     Push configs to the routers
 ```
 
-## Key differences
+## Deploying
 
-- **admin-ap**: MIPS 74Kc (no Debian chroot support), Entware-only on `sda1`, uses `syslog-ng` + `postfix`
-- **server-ap**: Mounts second USB disk (`sdb1`) into chroot as `/exports/media-01` for NFS file sharing (configured via `debian-mounts.sh`)
-- **util-ap**: Uses `openntpd` instead of `ntpsec` because the kernel (4.4) lacks `SO_TIMESTAMPNS` support required by ntpsec
-- **desktop-ap**: Standard setup, no special mounts or custom services
+```sh
+./deploy.sh                  # all routers
+./deploy.sh util-ap          # one router
+```
+
+Deploy writes the files to each router's USB SSD and sets the nvram values,
+then commits. Routers pick changes up on next boot (or restart services by
+hand).
+
+## Not in this repo
+
+- Secrets: WiFi PSKs, nvram snapshots, SSH keys. The nvram dumps in
+  particular contain key material and stay off git entirely.
+- The bootstrap framework itself ([ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap)):
+  `dd-wrt.sh`, `debian.sh`, `entware.sh` live there.
+
+SSH conventions: port 22 = Debian chroot, port 2222 = DD-WRT dropbear —
+except admin-ap, where 22 is the router (Entware) side since it has no chroot.

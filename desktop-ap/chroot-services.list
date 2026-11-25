@@ -6,3 +6,6 @@ ntpsec
 msmtpd
 rsync
 ssh
+rpcbind
+nfs-common
+nfs-kernel-server

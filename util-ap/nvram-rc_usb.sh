@@ -1,28 +1,12 @@
-# util-ap — Entware + Debian chroot
+# ---------------------------------------------------------------------
 
-sda=""
-sdb=""
+sda1=`blkid | grep root | cut -f 1 -d ':'`
 
-for dev in /dev/sd*1; do
-    label=$(blkid -s LABEL $dev | cut -d= -f2 | cut -d\" -f 2)
+mkdir -p /tmp/mnt/sda1
+mount ${sda1} -o defaults,noatime,nodiratime,commit=60 /tmp/mnt/sda1
 
-    case "$label" in
-        sda)
-            sda="$dev"
-            ;;
-        sdb)
-            sdb="$dev"
-            ;;
-        *)
-            echo "Unknown label $label on $dev, skipping" >> /tmp/FLOESS.LOG
-            ;;
-    esac
-done
-
-echo "Root device: $sda" >> /tmp/FLOESS.LOG
-echo "Media device: $sdb" >> /tmp/FLOESS.LOG
-
-mount -o noatime,nodiratime,commit=60 ${sda} /tmp/mnt/sda1
-mount -o noatime,nodiratime,commit=60 ${sdb} /tmp/mnt/sdb1
+# ---------------------------------------------------------------------
 
 /tmp/mnt/sda1/dd-wrt/etc/init.d/dd-wrt.sh start
+
+# ---------------------------------------------------------------------

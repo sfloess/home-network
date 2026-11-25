@@ -9,3 +9,5 @@ ntpsec
 msmtpd
 rsync
 ssh
+mariadb
+postgresql

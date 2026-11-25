@@ -1,7 +1,9 @@
 procps
 rsyslog
 cron
+ntpdate-debian
 openntpd
+dnsmasq
 msmtpd
 ssh
 screen-cleanup
