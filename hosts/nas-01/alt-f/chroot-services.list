@@ -1,0 +1,8 @@
+rsyslog
+cron
+ntpdate-debian
+ntpsec
+rsync
+msmtpd
+ssh
+smartmontools

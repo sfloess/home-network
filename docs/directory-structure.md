@@ -8,7 +8,7 @@ on disk, and a tiny boot hook chains from firmware into that disk.
 
 ```
 <disk>/
-├── <firmware-tree>/         # dd-wrt/ on DD-WRT routers, altf/ on nas-01
+├── <firmware-tree>/         # dd-wrt/ on DD-WRT routers, alt-f/ on nas-01
 │   ├── etc/chroot-services.list   # COMMON: service manifest
 │   └── init.d/
 │       ├── <fw>.sh                # firmware glue (entry, binds, mounts)
@@ -20,9 +20,11 @@ on disk, and a tiny boot hook chains from firmware into that disk.
 
 Common across both families: the manifest, `chroot.sh`, `debian/` semantics.
 Firmware-specific: only the entry glue — nvram `rc_usb` → `dd-wrt.sh` on
-DD-WRT boxes; Alt-F user-started-apps → `altf.sh` on nas-01. Note nas-01's
-tree is `altf/` (no dash): the firmware's own config dirs at `/mnt/md0`
-are already `Alt-F/` and `alt-f`.
+DD-WRT boxes; Alt-F user-started-apps → `altf.sh` on nas-01. nas-01's tree is
+`/mnt/md0/alt-f/` — the pre-existing bootstrap (same DontBeAPadavan
+`debian.sh` lineage as the routers, already chroot-services.list-driven,
+shared root at `alt-f/root/.ssh`, wired via Alt-F's `USER_SCRIPT` in
+`/etc/misc.conf`). The firmware's own config lives in `/mnt/md0/Alt-F/`.
 
 **Entware policy (Flossy, 2026-11-26):** Entware is the userland layer for
 boxes that cannot run a Debian chroot — admin-ap only, everywhere else it
