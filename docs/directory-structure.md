@@ -14,7 +14,7 @@ on disk, and a tiny boot hook chains from firmware into that disk.
 │       ├── <fw>.sh                # firmware glue (entry, binds, mounts)
 │       ├── chroot.sh              # COMMON: Debian chroot bootstrap
 │       └── entware.sh             # DD-WRT family only
-├── entware/                  # optional middle layer (DD-WRT family)
+├── entware/                  # chroot-less boxes only (admin-ap)
 └── debian/                   # COMMON: the chroot, everywhere
 ```
 
@@ -23,6 +23,12 @@ Firmware-specific: only the entry glue — nvram `rc_usb` → `dd-wrt.sh` on
 DD-WRT boxes; Alt-F user-started-apps → `altf.sh` on nas-01. Note nas-01's
 tree is `altf/` (no dash): the firmware's own config dirs at `/mnt/md0`
 are already `Alt-F/` and `alt-f`.
+
+**Entware policy (Flossy, 2026-11-26):** Entware is the userland layer for
+boxes that cannot run a Debian chroot — admin-ap only, everywhere else it
+is excluded (Debian supersedes it). util-ap's dormant tree removed; the
+R9000s and nas-01 never run it. The empty `entware/` dir may remain where
+the bind-mount layout expects it.
 
 - Routers: nvram `rc_usb` → `/tmp/mnt/sda1/dd-wrt/etc/init.d/dd-wrt.sh`
 - nas-01: Alt-F user-started-app → `/mnt/md0/altf/init.d/altf.sh` (planned)
