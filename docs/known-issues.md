@@ -63,3 +63,11 @@ A 128 MB router with ~30 MB available can run out of memory when several
 SSH sessions land at once (each `sshd-session` costs ~15 MB). Symptom is
 failed/frozen sessions while the box otherwise runs fine. Serialize
 management connections to the small boxes.
+
+## nas-01: NFS export is rw + no_root_squash to the whole LAN
+
+`/exports 192.168.1.0/24(rw,sync,no_subtree_check,no_root_squash)` — any LAN
+host can write to the array as root. Pre-existing and deliberate for the
+trusted home LAN, but note it before ever exposing that segment further.
+Combined with the linear (non-redundant) md0, a compromised or misbehaving
+host can destroy the array's contents with no snapshot safety net.
