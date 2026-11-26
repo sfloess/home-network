@@ -1,8 +1,11 @@
 rsyslog
 cron
-ntpdate-debian
 ntpsec
 rsync
 msmtpd
 ssh
-smartmontools
+# NOTE: trixie dropped /etc/init.d/rsyslog and ntpdate-debian. rsyslog runs
+# via a minimal init shim on the box; ntpsec runs via a foreground-mode shim
+# (ntpd's own daemonize mode dies on this box — unresolved, see memory).
+# smartmontools excluded: Alt-F's firmware smartd already monitors the disks.
+# rsync requires RSYNC_ENABLE=true in the chroot's /etc/default/rsync.
