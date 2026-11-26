@@ -96,3 +96,14 @@ The st80 box has needed a power cycle after remote reboots repeatedly
 (Nov 24 twice; Nov 26 once — offline awaiting physical power cycle as of
 this writing). Before any remote reboot of util-ap: confirm someone can
 reach the power button, or wire a watchdog/PDU first.
+
+## admin-ap: Debian chroot is impossible on this firmware (PIE vs old kernel)
+
+Empirically closed 2026-11-26: the WNDR3700v4's 3.18.140-d6 MIPS kernel cannot
+load PIE (ET_DYN) executables. Debian ≥buster builds its entire mipsel userland
+as PIE, so a Debian chroot cannot run — every binary dies with "Exec format
+error". Proof: an Entware non-PIE (EXEC-type) binary runs perfectly from inside
+the same Debian tree via `chroot`; only PIE binaries fail. This also explains
+the abandoned 1 GB `mipsel.tar` bootstrap attempt. Entware works because its
+`mipssf-k3.4` feed deliberately targets ancient kernels: non-PIE, soft-float,
+o32, bundled glibc. admin-ap stays Entware-only — by physics, not policy.
