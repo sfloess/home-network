@@ -8,6 +8,8 @@ routers, different firmware.
 - **Former syslog collector** (retired 2026-11-25 in favor of aio-01): rsyslog had UDP/TCP 514
   intake, per-host logs
   under `/exports/log/` (history preserved). New forwarders point at aio-01.
+- Forwards its own logs to the aio-01 collector (`*.* @rsyslog:514`, same
+  rule as every other fleet forwarder).
 - Retired collector config kept for reference:
   the DNS zone points here. See `rsyslog-collector.conf`.
 - Serves `/exports` via NFS (LAN, rw) and rsync (`rsyncd.conf`): media,
