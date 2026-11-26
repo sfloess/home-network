@@ -23,3 +23,12 @@ rsyslog (tcp, disk-queued) -> 127.0.0.1:6514
 - **laptop-01**: system-level unit (root has the pi-01 key).
   **laptop-02**: user-level unit + `loginctl enable-linger` (operator console;
   runs as the user, uses the user's fleet key).
+
+## Caveat: the home-LAN detection is subnet-based
+
+`grep -qF 192.168.1.` matches any network whose gateway is 192.168.1.x — the
+most common consumer-router subnet. On some *other* roaming network that
+happens to use it, the tunnel would target pi-01's LAN address and fail
+silently (logs spool locally until back somewhere sane). The cabin is
+192.168.2.x, so the known roaming case is unaffected. A MAC- or SSID-based
+test would be strictly safer if this ever bites.

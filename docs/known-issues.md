@@ -71,3 +71,11 @@ host can write to the array as root. Pre-existing and deliberate for the
 trusted home LAN, but note it before ever exposing that segment further.
 Combined with the linear (non-redundant) md0, a compromised or misbehaving
 host can destroy the array's contents with no snapshot safety net.
+
+## Fleet rsyncd: unauthenticated, root, LAN-writable
+
+All `exports` modules run `uid/gid = root`, `read only = no`, no auth users.
+aio-01 and nas-01 now carry `hosts allow = 192.168.1.0/24` (the cabin reaches
+them only through SSH tunnels, which originate on pi-01). The remaining fleet
+rsyncds and the root login on pi-01's public port-forward are tracked in the
+issue tracker.
