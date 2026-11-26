@@ -1,0 +1,12 @@
+[Unit]
+Description=SSH tunnel to aio-01 syslog collector (via pi-01; cabin-aware)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ssh -N -T -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -o ExitOnForwardFailure=yes -o BatchMode=yes -o ConnectTimeout=15 -L 127.0.0.1:6514:aio-01:514 syslog-tunnel
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=default.target
