@@ -4,8 +4,28 @@ Where everything lives on the routers and nas-01. The common principle: the
 firmware (nvram/flash) stays minimal and stock; everything persistent lives
 on disk, and a tiny boot hook chains from firmware into that disk.
 
+## The standard: firmware-parameterized, Debian-common
+
+```
+<disk>/
+├── <firmware-tree>/         # dd-wrt/ on DD-WRT routers, altf/ on nas-01
+│   ├── etc/chroot-services.list   # COMMON: service manifest
+│   └── init.d/
+│       ├── <fw>.sh                # firmware glue (entry, binds, mounts)
+│       ├── chroot.sh              # COMMON: Debian chroot bootstrap
+│       └── entware.sh             # DD-WRT family only
+├── entware/                  # optional middle layer (DD-WRT family)
+└── debian/                   # COMMON: the chroot, everywhere
+```
+
+Common across both families: the manifest, `chroot.sh`, `debian/` semantics.
+Firmware-specific: only the entry glue — nvram `rc_usb` → `dd-wrt.sh` on
+DD-WRT boxes; Alt-F user-started-apps → `altf.sh` on nas-01. Note nas-01's
+tree is `altf/` (no dash): the firmware's own config dirs at `/mnt/md0`
+are already `Alt-F/` and `alt-f`.
+
 - Routers: nvram `rc_usb` → `/tmp/mnt/sda1/dd-wrt/etc/init.d/dd-wrt.sh`
-- nas-01: Alt-F BusyBox init → Debian chroot at `/mnt/md0/debian`
+- nas-01: Alt-F user-started-app → `/mnt/md0/altf/init.d/altf.sh` (planned)
 
 ## Router USB SSD — `/tmp/mnt/sda1`
 

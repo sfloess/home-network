@@ -1,0 +1,7 @@
+rsyslog
+cron
+ntpsec
+msmtpd
+rsync
+ssh
+hddtemp
