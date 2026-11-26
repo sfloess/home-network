@@ -20,5 +20,12 @@ routers, different firmware.
 - systemd is not PID 1 here; `systemctl` shows unit-file states only.
   Services actually start via Alt-F's user-applications mechanism.
 
-Access: `ssh root@nas-01` port 22 (Debian sshd, fleet key). Alt-F's own
-dropbear is on 2222 (different credentials) and its web UI on 8080.
+Access — two layers, mirroring the routers' 2222/22 convention:
+- **Port 22**: Debian sshd (fleet key), the chroot environment.
+- **Port 2222**: Alt-F's dropbear — the *firmware* layer (2017 kernel 4.4.86,
+  aufs overlay root). Root + the fleet device password. Same password also
+  unlocks the Alt-F web UI on :8080. This is where you can see the raw
+  Alt-F filesystem: Debian lives at `/mnt/md0/debian`, with two dated
+  snapshots alongside it (`2024-03-26_20-54_debian`, `bak.debian`).
+  Note: recursive greps over `/Alt-F` (the aufs overlay) hang — probe it
+  with bounded commands.
