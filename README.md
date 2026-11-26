@@ -6,7 +6,7 @@ cron-driven fleet maintenance loop — all on hardware ranging from a 2014 MIPS
 box to modern ARM routers.
 
 The reusable framework these configs deploy through is
-[FlossWare/ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap).
+[FlossWare/embedded-bootstrap](https://github.com/FlossWare/embedded-bootstrap).
 
 ## Topology
 
@@ -101,7 +101,7 @@ hand).
 
 - Secrets: WiFi PSKs, nvram snapshots, SSH keys. The nvram dumps in
   particular contain key material and stay off git entirely.
-- The bootstrap framework itself ([ddwrt-bootstrap](https://github.com/FlossWare/ddwrt-bootstrap)):
+- The bootstrap framework itself ([embedded-bootstrap](https://github.com/FlossWare/embedded-bootstrap)):
   `dd-wrt.sh`, `debian.sh`, `entware.sh` live there.
 
 SSH conventions: port 22 = Debian chroot, port 2222 = DD-WRT dropbear —
