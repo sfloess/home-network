@@ -35,13 +35,15 @@ Identical shape on util-ap, server-ap, desktop-ap:
 `/root` — one `.ssh` shared by all three layers of the box.
 
 Per-device notes:
-- **admin-ap** (MIPS, no chroot): no `debian/`; Entware-only. Also carries a
-  **dead 256 MB `/tmp/mnt/sda1/swapfile`** (Mar 2026) from before the boot
-  script's path was `dd-wrt/var/swapfile` — the original silent swap failure.
+- **admin-ap** (MIPS, no chroot): no `debian/`; Entware-only. It carried a
+  dead 256 MB root-level `swapfile` from before the boot script's path was
+  `dd-wrt/var/swapfile` (the original silent swap failure) — cleared
+  2026-11-26.
 - **server-ap** `debian/` has bootstrap artifacts at its top level:
   `chroot-install.sh`, `db.tar`, `grafana.tar`.
-- **util-ap** carries ~1 GB of dead weight: `mipsel.tar` (old MIPS rootfs
-  attempt), plus a stray `start-ntpd.sh` and empty `ftp/`.
+- **util-ap** has `ftp/chroot` — a standalone `chroot` binary kept from the
+  original bootstrap (the old `mipsel.tar` and a stray `start-ntpd.sh` were
+  cleared 2026-11-26).
 
 ## The chroot's view (binds created at boot)
 
