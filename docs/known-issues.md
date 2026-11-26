@@ -79,3 +79,20 @@ aio-01 and nas-01 now carry `hosts allow = 192.168.1.0/24` (the cabin reaches
 them only through SSH tunnels, which originate on pi-01). The remaining fleet
 rsyncds and the root login on pi-01's public port-forward are tracked in the
 issue tracker.
+
+## Bind mounts protect the mountpoint, not its contents
+
+`rm -rf` on a directory tree containing bind mounts recurses *through* the
+bind and deletes the real files at the source. On util-ap this deleted the
+shared `root/.ssh` through the `entware/root` bind and locked out SSH on
+both ports (2026-11-26). Correct order is always: **umount the binds, then
+rm.** Recovery when SSH is dead: the DD-WRT web UI's `apply.cgi` accepts a
+`cron_jobs` POST (Referer header required for anti-CSRF) — but crond must
+be running, and see the rule below before rebooting to start it.
+
+## Never remotely reboot util-ap without physical access
+
+The st80 box has needed a power cycle after remote reboots repeatedly
+(Nov 24 twice; Nov 26 once — offline awaiting physical power cycle as of
+this writing). Before any remote reboot of util-ap: confirm someone can
+reach the power button, or wire a watchdog/PDU first.
