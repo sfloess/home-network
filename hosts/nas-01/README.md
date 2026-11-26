@@ -5,8 +5,10 @@
 chroot** on the md0 array — the same firmware-plus-chroot pattern as the
 routers, different firmware.
 
-- **Syslog collector** for the fleet: rsyslog on UDP/TCP 514, per-host logs
-  under `/exports/log/`. Forwarders send to the hostname `rsyslog`, which
+- **Former syslog collector** (retired 2026-11-25 in favor of aio-01): rsyslog had UDP/TCP 514
+  intake, per-host logs
+  under `/exports/log/` (history preserved). New forwarders point at aio-01.
+- Retired collector config kept for reference:
   the DNS zone points here. See `rsyslog-collector.conf`.
 - Serves `/exports` via NFS (LAN, rw) and rsync (`rsyncd.conf`): media,
   host backups, provision trees.

@@ -6,7 +6,7 @@ window, nightly rsync backups to aio-01.
 
 | Host | IP | Role |
 |------|-----|------|
-| aio-01 | 192.168.1.15 | Backup/rsync hub (`rsync://aio-01/exports`), planned syslog collector |
+| aio-01 | 192.168.1.15 | Backup/rsync hub + syslog collector (`rsyslog` DNS alias points here) |
 | nas-01 | 192.168.1.10 | NAS + syslog collector (Alt-F + Debian chroot) |
 | pi-01 | 192.168.1.11 | Agent DVR, firewall experiments |
 | pi-02 | 192.168.1.12 | Jellyfin |
