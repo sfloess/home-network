@@ -42,6 +42,18 @@ path to it (a direct SSH alias that bypasses the bastion), and (2) grep its
 syslog for the watchdog line. "All daemons accept TCP but never respond" +
 "cron still runs" = path problem, not box problem.
 
+## Entware scaffolding fails silently when the tree is empty
+
+On server-ap and desktop-ap the entware tree was empty, so the
+`startBind` motd/root binds *into* it (`entware/etc/motd`, `entware/root`)
+failed at every boot with no visible effect — only the `/opt` bind held,
+pointing at nothing. Entware scaffolding was removed from both boxes
+2026-11-27 (dd-wrt.sh `.bak-20261127` beside each); the framework's
+`dd-wrt.sh` now gates all Entware binds behind `ENABLE_ENTWARE=1`
+(default 0, admin-ap opts in). Lesson: binds onto nonexistent subdirs
+don't stop the boot — grep the flossware.log for mount errors before
+assuming a bind chain is intact.
+
 ## Entware init scripts killall by name — chroot shares the PID namespace
 
 `/opt/etc/init.d/S77ntpd stop` on the router side runs `killall ntpd`, which
