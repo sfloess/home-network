@@ -57,9 +57,9 @@ MAILFROM=sfloess@nc.rr.com
 #00 21  *  * 01-06 ssh laptop "time (rsync -a          --exclude .m2/repository --exclude Downloads --exclude .var --exclude .cache /home rsync://aio-01/exports/backups/host/laptop/)"
 #00 21  *  * 07    ssh laptop "time (rsync -a --delete --exclude .m2/repository --exclude Downloads --exclude .var --exclude .cache /home rsync://aio-01/exports/backups/host/laptop/)"
 # -------------------------------------------------------
-# -------------------------------------------------------
-00 22  *  * 01-06 ssh aio-01 "time (mountpoint -q /exports/usb/nvme && rsync -a           /exports/backups/ /exports/usb/nvme/backups/)"
-00 22  *  * 07    ssh aio-01 "time (mountpoint -q /exports/usb/nvme && rsync -a --delete  /exports/backups/ /exports/usb/nvme/backups/)"
+# nvme replica retired 2026-11-27: the USB NVMe was repurposed to
+# laptop-02 (encrypted corpus disk). aio-01 fstab entry commented and
+# /exports/usb/nvme removed. The HDD replica below is the only one now.
 # -------------------------------------------------------
 00 23  *  * 01-06 ssh aio-01 "time (mountpoint -q /exports/usb/hdd && rsync -a           /exports/backups/ /exports/usb/hdd/backups/)"
 00 23  *  * 07    ssh aio-01 "time (mountpoint -q /exports/usb/hdd && rsync -a --delete  /exports/backups/ /exports/usb/hdd/backups/)"
