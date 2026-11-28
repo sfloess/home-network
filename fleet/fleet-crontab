@@ -1,31 +1,16 @@
-# Edit this file to introduce tasks to be run by cron.
-#
-# Each task to run has to be defined through a single line
-# indicating with different fields when the task will be run
-# and what command to run for the task
-#
-# To define the time you can provide concrete values for
-# minute (m), hour (h), day of month (dom), month (mon),
-# and day of week (dow) or use '*' in these fields (for 'any').
-#
-# Notice that tasks will be started based on the cron's system
-# daemon's notion of time and timezones.
-#
-# Output of the crontab jobs (including errors) is sent through
-# email to the user the crontab file belongs to (unless redirected).
-#
-# For example, you can run a backup of all your user accounts
 # at 5 a.m every week with:
 # 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
 #
 # For more information see the manual pages of crontab(5) and cron(8)
 #
-# m h  dom mon dow   command
 # -------------------------------------------------------
 #MAILTO=sfloess@nc.rr.com
 MAILTO=scot.floess@gmail.com
 MAILFROM=sfloess@nc.rr.com
 # -------------------------------------------------------
+30 13  *  * 01    ssh server-01      "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+00 14  *  * 01    ssh server-02      "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
+30 14  *  * 01    ssh laptop-01      "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
 00 15  *  * 01    ssh admin-ap       "      opkg update   ; opkg upgrade"
 30 15  *  * 01    ssh util-ap        "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
 00 16  *  * 01    ssh server-ap      "time (apt update -y ; apt upgrade -y ; apt autoremove -y ; apt clean -y)"
@@ -57,9 +42,7 @@ MAILFROM=sfloess@nc.rr.com
 #00 21  *  * 01-06 ssh laptop "time (rsync -a          --exclude .m2/repository --exclude Downloads --exclude .var --exclude .cache /home rsync://aio-01/exports/backups/host/laptop/)"
 #00 21  *  * 07    ssh laptop "time (rsync -a --delete --exclude .m2/repository --exclude Downloads --exclude .var --exclude .cache /home rsync://aio-01/exports/backups/host/laptop/)"
 # -------------------------------------------------------
-# nvme replica retired 2026-11-27: the USB NVMe was repurposed to
-# laptop-02 (encrypted corpus disk). aio-01 fstab entry commented and
-# /exports/usb/nvme removed. The HDD replica below is the only one now.
+# -------------------------------------------------------
 # -------------------------------------------------------
 00 23  *  * 01-06 ssh aio-01 "time (mountpoint -q /exports/usb/hdd && rsync -a           /exports/backups/ /exports/usb/hdd/backups/)"
 00 23  *  * 07    ssh aio-01 "time (mountpoint -q /exports/usb/hdd && rsync -a --delete  /exports/backups/ /exports/usb/hdd/backups/)"
